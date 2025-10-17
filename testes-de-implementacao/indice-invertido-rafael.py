@@ -1,5 +1,6 @@
 import string
 
+
 class Node:
     def __init__(self, value, position=None):
         self.children = {}
@@ -98,6 +99,7 @@ class TrieCompacta:
             word = word[i:]
             next_dir = root.retrieve_child(word)
             rest_len = len(root.value[i:])
+            print(root.children)
 
             if consumed_so_far == word_tot_length and rest_len == 0:
                 return root if root.is_end else None
@@ -147,11 +149,11 @@ class TrieCompacta:
 
 if __name__ == "__main__":
     # text = """Lorem ipsum dolor sit ameteuismod. Suspendisse eu velit tortor. Morbi vehicula neque ut mi auctor, ut posuere turpis finibus."""
-    
+
     text = """Segundo outros, finalmente, a alma é um ser moral, distinto, independente da matéria e que conserva sua individualidade após a morte."""
-    
+
     # Processamento do texto para remover pontuações e converter tudo para minúsculas
-    text = text.translate(str.maketrans('', '', string.punctuation)).lower()
+    text = text.translate(str.maketrans("", "", string.punctuation)).lower()
 
     trie = TrieCompacta()
 
@@ -160,3 +162,4 @@ if __name__ == "__main__":
         trie.insert(word, idx)
 
     print(trie.log_tree())
+    print(trie.find("segundo"))
