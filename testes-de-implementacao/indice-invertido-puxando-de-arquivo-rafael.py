@@ -86,7 +86,7 @@ class TrieCompacta:
             else:  # exemplo, inserindo cha em chave
                 # nosso root seria cha
                 root.is_end = True
-
+                root.append_occourence(metadata_node_insertion)
         else:  # i >= lenroot val quer dizer, inserindo "chavea" e, "chave"
             if not rest_value:  # inserindo chave em chave
                 root.is_end = True
@@ -94,7 +94,7 @@ class TrieCompacta:
             else:  # ainda temos um a pra inserir em algum filho
                 next_child = root.retrieve_child(rest_value)
                 if next_child:  # inserir "chaveabe" depois de ter "chave" e "chavea"
-                    self.insert_rec(next_child, value, position, path)
+                    self.insert_rec(next_child, rest_value, position, path)
                 else:  # inserir "chavea" e n tem nada com o prefixo "a" depois de "chave"
                     root.add_child(Node(rest_value, metadata_node_insertion))
 
@@ -107,8 +107,6 @@ class TrieCompacta:
         root = self.head
 
         while root is not None:
-            print("value=", root.value)
-            print("word=", word)
             i = self.consume_word(root.value, word)
             consumed_so_far = consumed_so_far + i
 
@@ -121,6 +119,9 @@ class TrieCompacta:
 
             if not next_dir:
                 return None
+            
+            if len(word) == 0: #caso tenha match perfeito
+                return root if root.is_end and rest_len == 0 else None
 
             root = next_dir
 
@@ -163,13 +164,17 @@ class TrieCompacta:
 
 
 if __name__ == "__main__":
-    folder_path = "bbc/business"
+    folder_path = "bbc"
     txt_contents = {}
 
     for root, _, files in os.walk(folder_path):
         for file_name in files:
             if file_name.lower().endswith(".txt"):
                 file_path = os.path.join(root, file_name)
+                # remover dps. eh so pra ficar rapido os testes
+                if file_path not in [f'bbc/business/00{c}.txt' for c in range(1, 3)]:
+                    continue
+
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         txt_contents[file_path] = f.read()
@@ -179,7 +184,6 @@ if __name__ == "__main__":
     trie = TrieCompacta()
 
     for path, text in txt_contents.items():
-        print(path)
         for idx, word in enumerate(re.split(r"[ \n]+", text)):
             trie.insert(word, idx, path)
 
@@ -189,4 +193,7 @@ if __name__ == "__main__":
 
     print("---")
 
-    print(trie.find(search_term))
+    node = trie.find(search_term)
+
+    print(node)
+    print(node.positions)
