@@ -1,5 +1,6 @@
 import os
 import re
+from math import pow
 
 
 class Node:
@@ -163,18 +164,29 @@ class TrieCompacta:
         return "\n".join(str(x) for x in words)
 
 
-if __name__ == "__main__":
+def main():
     folder_path = "bbc/business"
     txt_contents = {}
 
+    num_docs = 0
+    
     for root, _, files in os.walk(folder_path):
         for file_name in files:
             if file_name.lower().endswith(".txt"):
                 file_path = os.path.join(root, file_name)
                 # remover dps. eh so pra ficar rapido os testes
-                if file_path not in [f'bbc/business/00{c}.txt' for c in range(1, 3)]:
+                def padStart(k):
+                    if k < 10:
+                        return f'00{k}'
+                    elif 10 <= k < 99:
+                        return f'0{k}'
+                    else:
+                        return k
+                if file_path not in [f'bbc/business/{padStart(c)}.txt' for c in range(1, 50)]:
                     continue
-
+                
+                num_docs = num_docs + 1
+                
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         txt_contents[file_path] = f.read()
@@ -187,7 +199,7 @@ if __name__ == "__main__":
         for idx, word in enumerate(re.split(r"[ \n]+", text)):
             trie.insert(word, idx, path)
 
-    search_term = "sales"
+    search_term = input("Termo de busca=")
 
     search_term = search_term.lower()
 
@@ -195,4 +207,49 @@ if __name__ == "__main__":
 
     node = trie.find(search_term)
     
-    print(node.positions)
+    if node is None:
+        return
+    
+    
+    positions = []
+    
+    avg_occourence = 0
+    for val in node.positions.values():
+        avg_occourence += len(val)/num_docs
+        
+    std_occourence = 0
+    for val in node.positions.values():
+        std_occourence +=  (pow((len(val) - avg_occourence), 2))/num_docs
+    
+    def calculate_zscore(positions):
+        return (len(positions) - avg_occourence)/std_occourence;
+    
+    for key, val in (node.positions).items():
+        positions.append({
+            'location': key,
+            'positions': val,
+            'occourences': len(val),
+            'zscore': calculate_zscore(val)
+        })
+
+    def get_key(a):
+        return a['zscore']
+
+    positions = sorted(positions, key=get_key, reverse=True)
+    
+    def format_output(pos):
+        del pos['zscore']
+        del pos['occourences']
+        
+    for position in positions:
+        format_output(position)
+    
+    for el in positions:
+        print(el)
+        
+
+if __name__ == "__main__":
+    main()
+    
+    
+    
