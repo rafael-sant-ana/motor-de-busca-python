@@ -241,6 +241,16 @@ def main():
         del pos['zscore']
         del pos['occourences']
         
+        with open(pos['location'], "r", encoding="utf-8") as f:
+            pos['snippet'] = f.read()
+            
+        ref_occourence = pos['positions'][0]
+        begin=max(0, ref_occourence-80)
+        end=min(len(pos['snippet']), ref_occourence+80)
+        pos['snippet'] = pos['snippet'][begin:end]
+        
+        del pos['positions'] 
+        
     for position in positions:
         format_output(position)
     
