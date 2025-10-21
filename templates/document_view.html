@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizando Documento: {{ title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        pre {
+            white-space: pre-wrap; 
+            word-wrap: break-word;
+            padding: 1rem;
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body class="pt-6 px-4 md:px-10 lg:px-40 xl:px-80">
+
+    <header class="mb-8 pb-4 border-b border-gray-300">
+        <a href="javascript:history.back()" class="text-blue-600 hover:text-blue-800 transition duration-150 flex items-center mb-4">
+            <!-- direto do feather icons-->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Voltar para busca
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">{{ title }}</h1>
+        <p class="text-sm text-gray-600 truncate">Caminho: <code class="bg-gray-200 px-2 py-0.5 rounded text-xs">{{ doc_path }}</code></p>
+    </header>
+
+    <main>
+        <div class="document-content">
+            <pre class="text-gray-900 text-sm">
+              {{ content }}
+            </pre>
+        </div>
+    </main>
+  </body>
+</html>

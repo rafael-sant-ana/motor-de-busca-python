@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ query if query else 'Uai, cadê' }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+            background-color: #ffffff; /* White background */
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .search-link {
+            color: #1a0dab;
+        }
+        .search-link:hover {
+            text-decoration: underline;
+        }
+        /* esse eh cinema. aprendi a fazer em 2021 */
+        .triangle {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            border-left: 0.32em solid transparent;
+            border-right: 0.32em solid transparent;
+            border-bottom: 0.8em solid red; 
+            vertical-align: -0.06em; 
+            margin: 0 0.08em;
+        }
+    </style>
+</head>
+
+{% if query %}
+    <body class="pt-6 px-4 md:px-10 lg:px-40 xl:px-80">
+        <header class="mb-6 flex items-center border-b border-gray-200 pb-4 sticky top-0 bg-white z-10">
+            <a href="/" class="text-xl font-bold text-gray-800 mr-6 hidden sm:block">
+                <span aria-label="Uai, cade?">
+                    U<span class="triangle" aria-hidden="true"></span>i, ca</span>dê?
+                </span>
+            </a>
+            
+            <form action="/search" method="get" class="flex-grow">
+                <div class="relative w-full shadow-md hover:shadow-lg transition duration-200 rounded-full border border-gray-200">
+                    <input type="text" 
+                        name="q" 
+                        value="{{ query }}"
+                        class="w-full h-12 py-3 pl-5 pr-12 text-lg focus:outline-none rounded-full" 
+                        placeholder="Pesquise no uai,cade"
+                        autocomplete="off"
+                        autocorrect="off"
+                        required>
+                    <button type="submit" class="absolute right-0 top-0 h-full w-12 flex items-center justify-center text-gray-500 hover:text-blue-600">
+                        <!-- do feather icons -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                </div>
+            </form>
+        </header>
+
+        <main class="space-y-6">
+            <p class="text-sm text-gray-500 mt-2">
+                {% if trie.num_docs > 0 %}
+                    Numero de documentos indexados: <b>{{ trie.num_docs }}</b>
+                {% else %}
+                    Index não pronto. verifique se a pasta 'bbc' existe e reinicie o servidor.
+                {% endif %}
+            </p>
+
+            {% if results %}
+                <p class="text-sm text-gray-600">
+                    Nessa página, há {{ results|length }} resultados para "<b>{{ query }}</b>"
+                </p>
+                <div class="space-y-8">
+                    {% for result in results %}
+                        <div class="max-w-xl">
+                            <div class="text-xs text-green-700 truncate mb-0.5">
+                                {{ result.location }}
+                            </div>
+
+                            <a href="{{ url_for('view_document', doc_path=result.location) }}" class="text-xl search-link hover:underline break-words">
+                                {{ result.location.split('/')[-1] }}
+                            </a>
+
+                            <p class="text-gray-700 text-sm mt-1 leading-relaxed">
+                                ...{{ result.snippet|safe }}...
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if pagination.total_pages > 1 %}
+                <div class="flex justify-center mt-10 space-x-2 pb-10">
+                    {% if pagination.current_page > 1 %}
+                        <a href="{{ url_for('search', q=query, page=pagination.current_page - 1) }}"
+                           class="px-4 py-2 text-sm font-semibold rounded-lg text-blue-700 hover:bg-blue-50 transition duration-150">
+                            < Anterior
+                        </a>
+                    {% endif %}
+
+                    {% for p in range(1, pagination.total_pages + 1) %}
+                        {% if p >= pagination.current_page - 2 and p <= pagination.current_page + 2 %}
+                            <a href="{{ url_for('search', q=query, page=p) }}"
+                               class="px-4 py-2 text-sm font-semibold rounded-lg 
+                                      {% if p == pagination.current_page %}
+                                        bg-blue-600 text-white shadow-md
+                                      {% else %}
+                                        text-blue-700 hover:bg-blue-50
+                                      {% endif %} transition duration-150">
+                                {{ p }}
+                            </a>
+                        {% elif (p == pagination.current_page - 3 and pagination.current_page > 4) or (p == pagination.current_page + 3 and pagination.current_page < pagination.total_pages - 3) %}
+                            <span class="px-2 py-2 text-gray-500">...</span>
+                        {% elif p == 1 and pagination.current_page > 3 %}
+                            <a href="{{ url_for('search', q=query, page=p) }}"
+                               class="px-4 py-2 text-sm font-semibold rounded-lg text-blue-700 hover:bg-blue-50 transition duration-150">
+                                {{ p }}
+                            </a>
+                        {% elif p == pagination.total_pages and pagination.current_page < pagination.total_pages - 2 %}
+                            <a href="{{ url_for('search', q=query, page=p) }}"
+                               class="px-4 py-2 text-sm font-semibold rounded-lg text-blue-700 hover:bg-blue-50 transition duration-150">
+                                {{ p }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.current_page < pagination.total_pages %}
+                        <a href="{{ url_for('search', q=query, page=pagination.current_page + 1) }}"
+                           class="px-4 py-2 text-sm font-semibold rounded-lg text-blue-700 hover:bg-blue-50 transition duration-150">
+                            Próxima >
+                        </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-20">
+                    <h2 class="text-2xl font-light text-gray-700">
+                        Sem resultados para a consulta "<b>{{ query }}</b>".
+                    </h2>
+                    <p class="text-gray-500 mt-2">Tente um termo de busca diferente.</p>
+                </div>
+            {% endif %}
+        </main>
+    </body>
+
+{% else %}
+
+<body class="flex items-center justify-center min-h-screen bg-gray-50">
+        <div class="text-center w-full max-w-lg px-4">
+            <h1 class="text-6xl font-extrabold mb-8">
+                <span aria-label="Uai, cade?">
+                    U<span class="triangle" aria-hidden="true"></span>i, ca</span>dê?
+                </span>
+            </h1>
+
+            <form action="/search" method="get" class="mb-4">
+                <div class="relative w-full mx-auto shadow-xl hover:shadow-2xl transition duration-300 rounded-full bg-white border border-gray-200">
+                    <input type="text" 
+                        name="q" 
+                        class="w-full h-14 py-4 pl-6 pr-14 text-md focus:outline-none rounded-full" 
+                        placeholder="Pesquise no uai,cadê"
+                        required>
+                    <button type="submit" class="absolute right-0 top-0 h-full w-14 flex items-center justify-center text-gray-500 hover:text-blue-700">
+                        <!-- do feather icons -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-search"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                </div>
+            </form>
+
+            <p class="text-sm text-gray-500 mt-6">
+                {% if trie.num_docs > 0 %}
+                    Índice carregado. Pronto para buscar em <b>{{ trie.num_docs }}</b> documentos.
+                {% else %}
+                    Falha no índice. Por favor, verifique se a pasta 'bbc' existe e reinicie o servidor.
+                {% endif %}
+            </p>
+
+            <div class="flex flex-col items-center mt-4 text-sm text-gray-500">
+                Para a busca, pode se usar AND e OR (em maiúsculas) entre os termos. <br />
+            </div>
+
+            <p class="text-xs text-gray-400 mt-4">
+                Feito  por Mateus Jesué e Rafael Sant'Ana, <br />
+                para a disciplina de Algoritmos 2 - UFMG 2025/2.
+            </p>
+        </div>
+    </body>
+{% endif %}
+</html>
