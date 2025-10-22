@@ -134,17 +134,23 @@ def boolean_search(search_query):
         ast.root = parser.parse(search_query)
         
         evaluator = ASTEvaluator(trie_adapter)
-        document_ids = evaluator.evaluate(ast.root)
+        documents = evaluator.evaluate(ast.root)
         
         results = []
-        for doc_id in document_ids:
+
+        for doc in documents:
+            doc_id = doc[0]
+            positions = doc[1]
             path = trie_adapter.get_document_path(doc_id)
             if path and os.path.exists(path):
                 try:
                     with open(path, "r", encoding="utf-8") as f:
                         content = f.read()
-                        
-                    snippet = content[:160].strip() + "..." if len(content) > 160 else content
+                    
+                    print(positions)
+                    begin = max(0, positions[0] - 80)
+                    end = min(positions[0] + 80, len(content))
+                    snippet = "..." + content[begin:end].strip() + "..."
                     
                     highlighted_snippet = highlight_terms_in_snippet(snippet, search_query)
                     

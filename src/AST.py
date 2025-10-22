@@ -141,15 +141,22 @@ class ASTEvaluator:
         
     def evaluate(self, node):
         if node.node_type == 'TERM':
-            return self.inverted_index.get(node.value, set())
+            return self.inverted_index.get(node.value, [])
         
         elif node.node_type == 'OPERATOR':
             left_docs = self.evaluate(node.leftChild)
             right_docs = self.evaluate(node.rightChild)
             
             if node.value == 'AND':
-                return left_docs & right_docs
+                intersection = []
+                
+                for path, positions in left_docs:
+                    for path_2, _ in right_docs:
+                        if path == path_2:
+                            intersection.append((path, positions))
+                
+                return intersection
             elif node.value == 'OR':
-                return left_docs | right_docs
+                return [*left_docs, *right_docs]
             
-        return set()
+        return []

@@ -176,10 +176,14 @@ def initialize_index(trie, folder_path="bbc", index_file="trie_index.json"):
       for path, text in txt_contents.items():
           words = [word for word in re.split(r'[^a-z0-9]+', text) if word]
           
-          offset = 0
+          start_pos = 0
           for word in words:
-              offset += len(word) + 1 
+              where_happens = text.find(word, start_pos)
+              
+              offset = where_happens + 1 
               trie.insert(word, offset, path)
+              
+              start_pos = where_happens
 
       try:
           with open(index_file, "w", encoding="utf-8") as f:

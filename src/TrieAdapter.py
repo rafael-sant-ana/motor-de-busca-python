@@ -26,9 +26,10 @@ class TrieAdapter:
         node = self.trie.find(term)
         
         if node is None or not node.is_end:
-            return default if default is not None else set()
+            return default if default is not None else []
         
-        document_ids = {self.path_to_id[path] for path in node.positions.keys() if path in self.path_to_id}
+        document_ids = [(self.path_to_id[path], value) for path, value in node.positions.items() if path in self.path_to_id]
+        
         return document_ids
     
     def get_document_path(self, doc_id):
