@@ -9,7 +9,6 @@ class TrieAdapter:
         all_paths = set()
         
         def collect_paths(node):
-            # CORREÇÃO: Coleta paths de TODOS os nós, não apenas dos finais
             if hasattr(node, 'positions') and node.positions:
                 all_paths.update(node.positions.keys())
             if hasattr(node, 'children'):

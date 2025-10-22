@@ -57,7 +57,7 @@ class QueryParser:
                 while i < n and (query[i].isalpha() or query[i] == '_'):
                     i += 1
                 
-                word = query[start:i].upper()
+                word = query[start:i]
                 
                 if word in ['AND', 'OR']:
                     tokens.append(word)

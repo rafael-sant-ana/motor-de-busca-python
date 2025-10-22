@@ -24,8 +24,7 @@ def is_boolean_query(query):
     if not query:
         return False
     
-    query_upper = query.upper()
-    return any(op in query_upper for op in ['AND', 'OR', '(', ')'])
+    return any(op in query for op in ['AND', 'OR', '(', ')'])
 
 def simple_search(search_term):
     search_term = search_term.lower()
@@ -92,8 +91,44 @@ def simple_search(search_term):
         
     return results
 
+def debug_boolean_search(search_query):
+    print(f"=== DEBUG CONSULTA: '{search_query}' ===")
+    
+    try:
+        parser = QueryParser()
+        tokens = parser.tokenize(search_query)
+        print(f"Tokens: {tokens}")
+        
+        ast = AST()
+        ast.root = parser.parse(search_query)
+        print("Árvore AST:")
+        ast.print_tree()
+        
+        print("=== TESTE DE TERMOS INDIVIDUAIS ===")
+        for token in tokens:
+            if token not in ['AND', 'OR', '(', ')']:
+                docs = trie_adapter.get(token)
+                print(f"Termo '{token}': {len(docs)} documentos -> {docs}")
+        
+        evaluator = ASTEvaluator(trie_adapter)
+        document_ids = evaluator.evaluate(ast.root)
+        print(f"Documentos encontrados: {document_ids}")
+        
+        paths = [trie_adapter.get_document_path(doc_id) for doc_id in document_ids]
+        print(f"Paths encontrados: {paths}")
+        
+        return document_ids
+        
+    except Exception as e:
+        print(f"ERRO: {e}")
+        import traceback
+        traceback.print_exc()
+        return set()
+
 def boolean_search(search_query):
     try:
+        # document_ids = debug_boolean_search(search_query)
+        
         parser = QueryParser()
         ast = AST()
         ast.root = parser.parse(search_query)
@@ -133,6 +168,7 @@ def highlight_terms_in_snippet(snippet, query):
     terms = []
     for token in query.upper().split():
         if token not in ['AND', 'OR', '(', ')'] and len(token) > 2:
+            token = token.lower()
             terms.append(token)
         
     highlighted_snippet = snippet
