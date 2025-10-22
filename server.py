@@ -150,7 +150,7 @@ def boolean_search(search_query):
                     print(positions)
                     begin = max(0, positions[0] - 80)
                     end = min(positions[0] + 80, len(content))
-                    snippet = "..." + content[begin:end].strip() + "..."
+                    snippet = ("..." if begin != 0 else "") + content[begin:end].strip() + ("..." if end != len(content) else "")
                     
                     highlighted_snippet = highlight_terms_in_snippet(snippet, search_query)
                     
@@ -175,8 +175,11 @@ def highlight_terms_in_snippet(snippet, query):
     for token in query.upper().split():
         if token not in ['AND', 'OR', '(', ')'] and len(token) > 2:
             token = token.lower()
+            token = token.replace('(', '')
+            token = token.replace(')', '')
             terms.append(token)
-        
+    
+    print (terms)
     highlighted_snippet = snippet
     for term in terms:
         highlighted_term = f'<span class="font-semibold bg-yellow-200 p-0.5 rounded-sm">{term}</span>'
