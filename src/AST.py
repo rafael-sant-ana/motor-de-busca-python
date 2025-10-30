@@ -72,7 +72,7 @@ class QueryParser:
     def parse(self, query):
         self.tokens = self.tokenize(query)
         self.current_token = 0
-        return self. parse_expression()
+        return self.parse_expression()
     
     def get_current_token(self):
         if self.current_token < len(self.tokens):
